@@ -1,0 +1,60 @@
+---
+dhcp_global_domain_name: "kyiv.epam.com"
+
+dhcp_global_domain_search:
+  - "kyiv.epam.com"
+  - "epam.com"
+
+dhcp_global_domain_name_servers:
+  - "10.17.0.4"
+  - "10.17.0.3"
+
+dhcp_global_default_lease_time: 600
+dhcp_global_max_lease_time: 7200
+
+dhcp_global_authoritative: "not authoritative"
+
+dhcp_global_log_facility: "local7"
+
+#
+# Subnet declarations
+#
+dhcp_subnets:
+  - external network:
+    ip: "10.0.0.0"
+    netmask: "255.0.0.0"
+
+  - internal_network:
+#    default_lease_time: "600"
+#    max_lease_time: "7200"
+    routers: "192.168.1.1"
+#    subnet_mask: "255.255.255.0"
+#    domain_search: "domain_search"
+    domain_name_servers:
+      - "10.17.0.4"
+      - "10.17.0.3"
+    ip: "192.168.1.0"
+    netmask: "255.255.255.0"
+#    range_begin: "192.168.1.10"
+#    range_end: "192.168.1.254"
+    pools:
+      - pool1:
+#        domain_name_servers:
+#          - "10.17.0.4"
+#          - "10.17.0.3"
+#        default_lease_time: "600"
+#        min_lease_time: "60" 
+#        max_lease_time: "7200"
+        range_begin: "192.168.1.10"
+        range_end: "192.168.1.254"
+  
+#dhcp_hosts:
+#  - host1:
+#    name: "host1"
+#    mac: "00:00:00:00:00:00"
+#    ip: "192.168.1.42"
+#  
+#  - host2:
+#    name: "host2"
+#    mac: "00:00:00:00:00:00"
+#    ip: "192.168.1.42"

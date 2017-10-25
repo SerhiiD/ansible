@@ -1,0 +1,54 @@
+---
+# tasks file for initial_config
+
+- name: upgrade all packages for CentOS
+  yum:
+    name: '*'
+    state: latest
+    update_cache: yes
+  when:
+    - ansible_distribution == "CentOS"
+
+- name: install epel-release for Centos
+  yum:
+    name: epel-release
+    state: latest
+    update_cache: yes
+  when:
+    - ansible_distribution == "CentOS"
+
+- name: install packages for Centos
+  yum:
+    name:
+      - vim
+      - epel-release
+      - hyperv-daemons
+      - git
+      - bash-completion
+      - python-pip
+      - mlocate
+    state: latest
+    update_cache: yes
+  when:
+    - ansible_distribution == "CentOS"
+
+- name: upgrade all packages for Ubuntu
+  apt:
+    upgrade: full
+  when:
+    - ansible_distribution == "Ubuntu"
+
+- name: install packages for Ubuntu
+  apt:
+    name:
+      - aptitude
+      - linux-virtual-lts-xenial
+      - linux-tools-virtual-lts-xenial
+      - linux-cloud-tools-virtual-lts-xenial
+      - python-pip
+      - vim
+    state: latest
+    install_recommends: yes
+  when:
+    - ansible_distribution == "Ubuntu"
+
