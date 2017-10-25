@@ -7,5 +7,28 @@
     state: present
     reload: yes
 
-- name: configuring firewalld
-# TO DO
+#- name: configuring firewalld
+  #firewalld:
+    #masquerade: yes
+    #state: enabled
+    #zone: internal
+    #source: 192.168.1.0/24
+    #permanent: true
+    #immediate: true
+
+- name: configuring firewalld zones 1
+  firewalld:
+    zone: public
+    interface: -eth1 eth1
+    state: disabled
+    immediate: true
+    permanent: true
+
+- name: configuring firewalld zones 2 
+  firewalld:
+    zone: internal
+    interface: eth1
+    state: disabled
+    immediate: true
+    permanent: true
+

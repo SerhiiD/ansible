@@ -6,6 +6,7 @@ dhcp_global_domain_search:
   - "epam.com"
 
 dhcp_global_domain_name_servers:
+  - "192.168.1.1"
   - "10.17.0.4"
   - "10.17.0.3"
 
@@ -30,9 +31,9 @@ dhcp_subnets:
     routers: "192.168.1.1"
 #    subnet_mask: "255.255.255.0"
 #    domain_search: "domain_search"
-    domain_name_servers:
-      - "10.17.0.4"
-      - "10.17.0.3"
+#    domain_name_servers:
+#      - "10.17.0.4"
+#      - "10.17.0.3"
     ip: "192.168.1.0"
     netmask: "255.255.255.0"
 #    range_begin: "192.168.1.10"
