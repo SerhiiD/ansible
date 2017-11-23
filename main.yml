@@ -1,20 +1,5 @@
 ---
-#- hosts: all
-#  become: true
-#  roles: 
-#    - initial_config
-#
-#- hosts: awx
-#  become: true
-#  roles: 
-#    - initial_config
-#    - awx
-#
-- hosts: gw0
+- hosts: all
   become: true
-  roles:
-    - initial_config
-    - dhcpd
-    #- router
-
-
+  roles: 
+    - bootstrap

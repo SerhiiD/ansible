@@ -19,7 +19,8 @@
 
 - name: install packages for Centos
   yum:
-    name:
+    name: "{{ item }}"
+  with_items:
       - vim
       - epel-release
       - hyperv-daemons
