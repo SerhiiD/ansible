@@ -25,7 +25,7 @@ Vagrant.configure("2") do |config|
     ansible01.vm.synced_folder ".", "/vagrant"
 
 #    ansible01.vm.provision "ansible_local" do |ansible|
-#      ansible.playbook = "ansible/main.yml"
+#      ansible.playbook = "main.yml"
 ##     ansible.verbose        = true
 #      ansible.install        = true
 ##     ansible.limit          = "all" # or only "nodes" group, etc.
