@@ -60,10 +60,10 @@ else
 	inventory = {"all" => {"hosts" => {}}}
         hosts.each do |host|
           cmd = "vagrant ssh  #{host} -c 'hostname -s' -- -q"
-	  hostName = (`#{cmd}`).gsub!(/[^0-9A-Za-z\.]/, '')
+	  hostName = (`#{cmd}`).gsub!(/[^0-9A-Za-z\.-_]/, '')
 
           cmd = "vagrant ssh  #{host} -c 'hostname -I' -- -q"
-          hostIP = (`#{cmd}`).gsub!(/[^0-9A-Za-z\.]/, '')
+          hostIP = (`#{cmd}`).gsub!(/[^0-9\.]/, '')
 
 	  #puts "#{hostName} - #{hostIP}"
 	  inventory["all"]["hosts"][hostName] = {"ansible_host" => hostIP, "ansible_port" => "22"}
