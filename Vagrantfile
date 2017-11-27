@@ -8,13 +8,13 @@ ENV["LC_ALL"] = "en_US.UTF-8"
 
 # check is vagrant-triggers plugin installed
 if (!Vagrant.has_plugin?("vagrant-triggers"))
+  # install vagrant-triggers plugin and rerun vagrant with current arguments
   system("vagrant plugin install vagrant-triggers")
   system("vagrant #{ARGV.join(" ")}")
   abort
 else
   Vagrant.configure("2") do |config|
     config.vm.define "node01" do |node01|
-      
       config.vm.network "private_network", type: "dhcp"
 
       node01.vm.provider "virtualbox" do |virtualbox|
@@ -53,6 +53,7 @@ else
         hosts = []
         CSV.parse(vmStatus, :quote_char => "|") do |row|
           if row[1] != nil then
+            puts "row[1]: #{row[1]}"
             hosts << row[1]
           end
         end
@@ -63,6 +64,7 @@ else
           cmd = "vagrant ssh  #{host} -c 'hostname -s' -- -q"
           hostName = (`#{cmd}`).gsub!(/[^0-9A-Za-z\.-]/, '')
 
+          # probably this is a hack
           cmd = "vagrant ssh  #{host} -c \"hostname -I | cut -d\' \' -f2\" -- -q"
           hostIP = (`#{cmd}`).gsub!(/[^0-9\.]/, '')
 
