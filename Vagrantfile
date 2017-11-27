@@ -6,15 +6,12 @@ require "yaml"
 
 ENV["LC_ALL"] = "en_US.UTF-8"
 
-# check is vagrant-triggers plugin installed
-if (!Vagrant.has_plugin?("vagrant-triggers"))
-  #raise 'vagrant-triggers is not installed!'
-  system("vagrant plugin install vagrant-triggers")
-  system("vagrant #{ARGV.join(" ")}")
-  abort
-else
+BEGIN {
   Vagrant.configure("2") do |config|
     config.vm.define "node01" do |node01|
+      
+      config.vm.network "private_network", type: "dhcp"
+
       node01.vm.provider "virtualbox" do |virtualbox|
         virtualbox.name = "node01"
       end
@@ -24,60 +21,54 @@ else
       node01.vm.synced_folder ".", "/vagrant"
     end
   
-    config.vm.define "ansible01" do |ansible01|
-      ansible01.vm.provider "virtualbox" do |virtualbox|
-        virtualbox.name = "ansible01"
+    config.vm.define "controller" do |controller|
+      controller.vm.provider "virtualbox" do |virtualbox|
+        virtualbox.name = "controller"
       end
-      ansible01.vm.box = "centos/7"
-      ansible01.vm.hostname = "ansible01"
-      ansible01.vm.synced_folder ".", "/vagrant"
-  
-  #    ansible01.vm.provision "ansible_local" do |ansible|
-  #    ansible.playbook = "main.yml"
-  #    ansible.verbose        = true
-  #    ansible.install        = true
-  #    ansible.limit          = "all" # or only "nodes" group, etc.
-  #    ansible.extra_vars = {
-  #      is_vagrant: true,
-  #    }
-  #    end
-    end
-  
-    config.trigger.after [:up, :resume, :provision] do
-      if ARGV.include? "up" or ARGV.include? "provision" or ARGV.include? "--provision" then
-      
-        vmStatus = `vagrant status --machine-readable`
-      
-        hosts = []
-        CSV.parse(vmStatus, :quote_char => "|") do |row|
-          #TO DO: if row[1] is not nil
-          hosts << row[1]
-        end
-      
-        hosts = hosts.uniq
-        hosts.delete(nil)
+      controller.vm.box = "centos/7"
+      controller.vm.hostname = "controller"
+      controller.vm.synced_folder ".", "/vagrant"
 
-	inventory = {"all" => {"hosts" => {}}}
-        hosts.each do |host|
-          cmd = "vagrant ssh  #{host} -c 'hostname -s' -- -q"
-	  hostName = (`#{cmd}`).gsub!(/[^0-9A-Za-z\.-_]/, '')
-
-          cmd = "vagrant ssh  #{host} -c 'hostname -I' -- -q"
-          hostIP = (`#{cmd}`).gsub!(/[^0-9\.]/, '')
-
-	  #puts "#{hostName} - #{hostIP}"
-	  inventory["all"]["hosts"][hostName] = {"ansible_host" => hostIP, "ansible_port" => "22"}
-	  #inventory[hostName]= hostIP
-
-	  #TO DO: provide tests on multi-ip vm
-	  #arrHostDetails = hostDetails.split[0]
-	  #puts arrHostDetails
-        end
-
-	File.write('hosts.yml', inventory.to_yaml)
-
+      controller.vm.provision "ansible_local" do |ansible|
+        ansible.playbook = "ping.yml"
+        ansible.inventory_path = "hosts.yml"
+        #  ansible.verbose        = true
+        ansible.install        = true
+        ansible.limit          = "all" # or only "nodes" group, etc.
+        ansible.extra_vars = {
+          is_vagrant: true,
+        }
       end
     end
-
   end
+}
+
+if ARGV.include? "up" or ARGV.include? "provision" or ARGV.include? "--provision" then
+  vmStatus = `vagrant status --machine-readable`
+    
+  hosts = []
+  CSV.parse(vmStatus, :quote_char => "|") do |row|
+    if row[1] != nil then
+      hosts << row[1]
+    end
+  end
+  hosts = hosts.uniq
+
+  inventory = {"all" => {"hosts" => {}}}
+  hosts.each do |host|
+    cmd = "vagrant ssh  #{host} -c 'hostname -s' -- -q"
+    hostName = (`#{cmd}`).gsub!(/[^0-9A-Za-z\.-]/, '')
+
+    cmd = "vagrant ssh  #{host} -c \"hostname -I | cut -d\' \' -f2\" -- -q"
+    hostIP = (`#{cmd}`).gsub!(/[^0-9\.]/, '')
+
+    inventory["all"]["hosts"][hostName] = {"ansible_host" => hostIP, "ansible_port" => "22"}
+  end
+
+  puts inventory.to_yaml
+
+  File.open("hosts.yml", "w+") do |f|
+    f.write inventory.to_yaml
+  end
+  system("vagrant rsync")
 end
