@@ -7,6 +7,31 @@ require "fileutils"
 
 ENV["LC_ALL"] = "en_US.UTF-8"
 
+# declaration of the infrastructure
+inventory = {"all" => 
+              {
+                "hosts" => 
+                {
+                  "controller" => 
+                  {
+                    "ansible_host" => "",
+                    "ansible_port" => "",
+                    "ansible_ssh_private_key_file" => ""
+                  }
+                },
+                "nodes" =>
+                {
+                  "node01" =>
+                  {
+                    "ansible_host" => "",
+                    "ansible_port" => "",
+                    "ansible_ssh_private_key_file" => ""
+                  }
+                }
+              }
+            }
+
+
 # checking if vagrant-triggers plugin is installed
 if (!Vagrant.has_plugin?("vagrant-triggers"))
   # install vagrant-triggers plugin and rerun vagrant with current arguments
@@ -65,7 +90,6 @@ else
         hosts = hosts.uniq
 
         # generate ansible inventory in yaml
-        inventory = {"all" => {"hosts" => {}}}
         hosts.each do |host|
           cmd = "vagrant ssh  #{host} -c 'hostname -s' -- -q"
           hostName = (`#{cmd}`).gsub!(/[^0-9A-Za-z\.\-]/, '')
