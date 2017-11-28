@@ -1,6 +1,4 @@
 ---
-# tasks file for initial_config
-
 - name: upgrade all packages for CentOS
   yum:
     name: '*'
