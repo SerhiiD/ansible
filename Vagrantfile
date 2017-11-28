@@ -32,6 +32,7 @@ else
       controller.vm.box = "centos/7"
       controller.vm.hostname = "controller"
       controller.vm.synced_folder ".", "/vagrant"
+      
       controller.vm.provision "shell", inline: "sudo chmod 600 /vagrant/*_private_key"
 
       controller.vm.provision "ansible_local" do |ansible|
