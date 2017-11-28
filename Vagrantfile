@@ -23,7 +23,6 @@ else
       end
       node01.vm.box = "centos/7"
       node01.vm.hostname = "node01"
-      node01.vm.synced_folder ".", "/vagrant"
     end
   
     config.vm.define "controller" do |controller|
@@ -42,7 +41,7 @@ else
         ansible.inventory_path = "hosts.yml"
         #  ansible.verbose        = true
         ansible.install        = true
-        ansible.limit          = "all" # or only "nodes" group, etc.
+        ansible.limit          = "all"
         ansible.extra_vars = {
           is_vagrant: true,
         }
@@ -50,6 +49,7 @@ else
     end
 
     config.trigger.after [:up, :resume, :provision] do
+      # In the code below recursively execute vagrant commands. This check helps to avoid infinite loop.
       if ARGV.include? "up" or ARGV.include? "provision" or ARGV.include? "--provision" then
         vmStatus = `vagrant status --machine-readable`
 
@@ -61,9 +61,9 @@ else
             end
           end
         end
-
         hosts = hosts.uniq
 
+        # generate ansible inventory in yaml
         inventory = {"all" => {"hosts" => {}}}
         hosts.each do |host|
           cmd = "vagrant ssh  #{host} -c 'hostname -s' -- -q"
@@ -85,17 +85,12 @@ else
         end
 
         puts inventory.to_yaml
-
         File.open("hosts.yml", "w+") do |f|
           f.write inventory.to_yaml
         end
+
       end
     end
+
   end
 end
-
-# END {
-#   if ARGV.include? "up" or ARGV.include? "provision" or ARGV.include? "--provision" then
-#     system("vagrant reload")
-#   end
-# }
