@@ -7,7 +7,7 @@ require "fileutils"
 
 ENV["LC_ALL"] = "en_US.UTF-8"
 
-# check is vagrant-triggers plugin installed
+# checking if vagrant-triggers plugin is installed
 if (!Vagrant.has_plugin?("vagrant-triggers"))
   # install vagrant-triggers plugin and rerun vagrant with current arguments
   system("vagrant plugin install vagrant-triggers")
@@ -49,7 +49,7 @@ else
     end
 
     config.trigger.after [:up, :resume, :provision] do
-      # In the code below recursively execute vagrant commands. This check helps to avoid infinite loop.
+      # In the code below vagrant commands are recursively executed. This check helps to avoid infinite loop.
       if ARGV.include? "up" or ARGV.include? "provision" or ARGV.include? "--provision" then
         vmStatus = `vagrant status --machine-readable`
 
