@@ -39,7 +39,7 @@
 
 - name: install packages for Ubuntu
   apt:
-    name: {{ item }}
+    name: "{{ item }}"
     state: latest
     install_recommends: yes
   with_items:
