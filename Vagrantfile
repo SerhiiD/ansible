@@ -25,10 +25,7 @@ else
       node01.vm.box = "centos/7"
       node01.vm.hostname = "node01"
       
-      node01.vm.synced_folder ".", "/vagrant", id: "vagrant-root",
-      owner: "vagrant",
-      group: "vagrant",
-      mount_options: ["dmode=700,fmode=600"]
+      node01.vm.synced_folder ".", "/vagrant"
     end
   
     config.vm.define "controller" do |controller|
@@ -38,14 +35,12 @@ else
       controller.vm.box = "centos/7"
       controller.vm.hostname = "controller"
 
-      controller.vm.synced_folder ".", "/vagrant", id: "vagrant-root",
-      owner: "vagrant",
-      group: "vagrant",
-      mount_options: ["dmode=700,fmode=600"]
-            
+      controller.vm.synced_folder ".", "/vagrant"
+      controller.vm.provision "shell", inline: "sudo chmod 600 /vagrant/*_private_key"
       controller.vm.provision "ansible_local" do |ansible|
         ansible.provisioning_path = "/vagrant"
-        ansible.playbook = "ping.yml"
+        # ansible.playbook = "ping.yml"
+        ansible.playbook = "main.yml"
         ansible.inventory_path = "hosts.yml"
         #  ansible.verbose        = true
         ansible.install        = true

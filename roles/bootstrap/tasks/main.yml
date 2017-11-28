@@ -20,16 +20,16 @@
 - name: install packages for Centos
   yum:
     name: "{{ item }}"
-  with_items:
-      - vim
-      - epel-release
-      - hyperv-daemons
-      - git
-      - bash-completion
-      - python-pip
-      - mlocate
     state: latest
     update_cache: yes
+  with_items:
+    - vim
+    - epel-release
+    - hyperv-daemons
+    - git
+    - bash-completion
+    - python-pip
+    - mlocate
   when:
     - ansible_distribution == "CentOS"
 
@@ -41,15 +41,16 @@
 
 - name: install packages for Ubuntu
   apt:
-    name:
-      - aptitude
-      - linux-virtual-lts-xenial
-      - linux-tools-virtual-lts-xenial
-      - linux-cloud-tools-virtual-lts-xenial
-      - python-pip
-      - vim
+    name: {{ item }}
     state: latest
     install_recommends: yes
+  with_items:
+    - aptitude
+    - linux-virtual-lts-xenial
+    - linux-tools-virtual-lts-xenial
+    - linux-cloud-tools-virtual-lts-xenial
+    - python-pip
+    - vim
   when:
     - ansible_distribution == "Ubuntu"
 
