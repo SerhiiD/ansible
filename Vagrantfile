@@ -21,10 +21,8 @@ else
       node01.vm.provider "virtualbox" do |virtualbox|
         virtualbox.name = "node01"
       end
-  
       node01.vm.box = "centos/7"
       node01.vm.hostname = "node01"
-      
       node01.vm.synced_folder ".", "/vagrant"
     end
   
@@ -34,9 +32,9 @@ else
       end
       controller.vm.box = "centos/7"
       controller.vm.hostname = "controller"
-
       controller.vm.synced_folder ".", "/vagrant"
       controller.vm.provision "shell", inline: "sudo chmod 600 /vagrant/*_private_key"
+
       controller.vm.provision "ansible_local" do |ansible|
         ansible.provisioning_path = "/vagrant"
         # ansible.playbook = "ping.yml"
@@ -59,15 +57,13 @@ else
         CSV.parse(vmStatus) do |row|
           if row.include? ("state") then
             if row[row.index("state")+1] == "running" then
-              # puts "#{row [1]} #{row[row.index("state")]} #{row[row.index("state")+1]}"
               hosts << row[1]
             end
           end
         end
 
         hosts = hosts.uniq
-        # puts hosts
-        
+
         inventory = {"all" => {"hosts" => {}}}
         hosts.each do |host|
           cmd = "vagrant ssh  #{host} -c 'hostname -s' -- -q"
@@ -93,7 +89,6 @@ else
         File.open("hosts.yml", "w+") do |f|
           f.write inventory.to_yaml
         end
-        # system("vagrant rsync")
       end
     end
   end
