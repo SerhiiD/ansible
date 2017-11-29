@@ -7,7 +7,7 @@ require "fileutils"
 
 ENV["LC_ALL"] = "en_US.UTF-8"
 
-# declaration of the infrastructure
+# the infrastructure declaration
 inventory = {"all" => 
               {
                 "hosts" => 
@@ -19,13 +19,16 @@ inventory = {"all" =>
                     "ansible_ssh_private_key_file" => ""
                   }
                 },
-                "nodes" =>
+                "children" => 
                 {
-                  "node01" =>
+                  "nodes" =>
                   {
-                    "ansible_host" => "",
-                    "ansible_port" => "",
-                    "ansible_ssh_private_key_file" => ""
+                    "node01" =>
+                    {
+                      "ansible_host" => "",
+                      "ansible_port" => "",
+                      "ansible_ssh_private_key_file" => ""
+                    }
                   }
                 }
               }
@@ -75,12 +78,14 @@ else
     end
 
     config.trigger.after [:up, :resume, :provision] do
-      # In the code below vagrant commands are recursively executed. This check helps to avoid infinite loop.
+      # in the code below vagrant commands are recursively executed.
+      # this check helps to avoid infinite loop.
       if ARGV.include? "up" or ARGV.include? "provision" or ARGV.include? "--provision" then
-        vmStatus = `vagrant status --machine-readable`
-
+        # get host list
+        # this part should be suppressed - host list is declared in the beginning of this file
+        cmd = `vagrant status --machine-readable`
         hosts = []
-        CSV.parse(vmStatus) do |row|
+        CSV.parse(cmd) do |row|
           if row.include? ("state") then
             if row[row.index("state")+1] == "running" then
               hosts << row[1]
@@ -89,24 +94,30 @@ else
         end
         hosts = hosts.uniq
 
-        # generate ansible inventory in yaml
+        # processes all hosts one by one, prepare the needed environment
+        # generates Ansible inventory in yaml
         hosts.each do |host|
           cmd = "vagrant ssh  #{host} -c 'hostname -s' -- -q"
           hostName = (`#{cmd}`).gsub!(/[^0-9A-Za-z\.\-]/, '')
 
           # probably this is a hack
+          # get IP address from the hosts
+          # probably should be suppressed by https://github.com/vagrant-landrush/landrush
           cmd = "vagrant ssh  #{host} -c \"hostname -I | cut -d\' \' -f2\" -- -q"
           hostIP = (`#{cmd}`).gsub!(/[^0-9\.]/, '')
 
+          # the directory that holds private keys (.vagrant) does not sync with guest OS
+          # this code copyes private keys to the root folder
+          # should be suppressed by vm.provision "file"
           cmd = "vagrant ssh-config #{host}"
-
           ((`#{cmd}`).to_s.split).each_slice(2) do |pair|
             if pair[0] == "IdentityFile" then
               FileUtils.cp(pair[1], "#{hostName}_private_key")
             end
           end
 
-          inventory["all"]["hosts"][hostName] = {"ansible_host" => hostIP, "ansible_port" => "22", "ansible_ssh_private_key_file" => "#{hostName}_private_key"}
+          inventory["all"]["hosts"][hostName] = {"ansible_host" => hostIP, "ansible_port" => "22", 
+                                                 "ansible_ssh_private_key_file" => "#{hostName}_private_key"}
         end
 
         puts inventory.to_yaml
@@ -115,7 +126,7 @@ else
         end
 
       end
-    end
+    end # config.trigger.after
 
-  end
+  end # Vagrant.configure
 end
