@@ -4,7 +4,7 @@ ENV["LC_ALL"] = "en_US.UTF-8"
 
 require "csv"
 require "yaml"
-require "fileutils"
+# require "fileutils"
 
 
 # checking if vagrant-triggers plugin is installed
@@ -38,6 +38,7 @@ Vagrant.configure("2") do |config|
     controller.vm.provision "trigger" do |trigger|
       trigger.fire do
         addAllGuestsIPtoAllGuestsHostsFiles
+        puts getPrivateKeys
       end        
     end
 
@@ -121,16 +122,19 @@ def getPrivateKeys
   # if ARGV.include? "up" or ARGV.include? "provision" or ARGV.include? "--provision" then
   if not ARGV.include? "ssh-config" then
     hosts = getRunningVMs
-
-    # the directory that holds private keys (.vagrant) does not sync with guest OS
-    # this code copyes private keys to the root folder
-    # should be suppressed by vm.provision "file"
-    cmd = "vagrant ssh-config #{host}"
-    ((`#{cmd}`).to_s.split).each_slice(2) do |pair|
-      if pair[0] == "IdentityFile" then
-        FileUtils.cp(pair[1], "#{hostName}_private_key")
+    keys = {}
+    hosts.each do |host|
+      # the directory that holds private keys (.vagrant) does not sync with guest OS
+      # this code copyes private keys to the root folder
+      # should be suppressed by vm.provision "file"
+      cmd = "vagrant ssh-config #{host}"
+      ((`#{cmd}`).to_s.split).each_slice(2) do |pair|
+        if pair[0] == "IdentityFile" then
+          keys[host] = pair[1]
+          # FileUtils.cp(pair[1], "#{hostName}_private_key")
+        end
       end
     end
-
+    return keys
   end    
 end
