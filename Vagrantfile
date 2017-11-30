@@ -35,6 +35,10 @@ Vagrant.configure("2") do |config|
 
     controller.vm.synced_folder ".", "/vagrant"
 
+    controller.vm.provision "file", source: ".vagrant/machines/node01/virtualbox/private_key", destination: "/home/vagrant/.ssh/node01_private_key"
+    controller.vm.provision "shell", inline: "sudo chmod 600 /home/vagrant/.ssh/*_private_key"
+    # controller.vm.provision "shell", inline: "sudo chmod 600 /home/vagrant/.ssh/config"
+    
     controller.vm.provision "trigger" do |trigger|
       trigger.fire do
         addAllGuestsIPtoAllGuestsHostsFiles
