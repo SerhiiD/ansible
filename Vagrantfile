@@ -62,7 +62,7 @@ Vagrant.configure("2") do |config|
         is_vagrant: true,
       }
     end
-    puts config.ssh.private_key_path[0]
+    # config.ssh.private_key_path
     
   end
 
