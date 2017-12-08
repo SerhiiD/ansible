@@ -33,8 +33,8 @@ Vagrant.configure("2") do |config|
     controller.vm.box = "centos/7"
     controller.vm.hostname = "controller"
 
-    controller.vm.synced_folder ".", "/vagrant"
-
+    controller.vm.synced_folder ".", "/vagrant" #, rsync__exclude: ""
+    
     controller.vm.provision "file", source: ".vagrant/machines/node01/virtualbox/private_key", destination: "/home/vagrant/.ssh/node01_private_key"
     controller.vm.provision "shell", inline: "sudo chmod 600 /home/vagrant/.ssh/*_private_key"
     # controller.vm.provision "shell", inline: "sudo chmod 600 /home/vagrant/.ssh/config"
@@ -42,7 +42,7 @@ Vagrant.configure("2") do |config|
     controller.vm.provision "trigger" do |trigger|
       trigger.fire do
         addAllGuestsIPtoAllGuestsHostsFiles
-        puts getPrivateKeys
+        # puts getPrivateKeys
       end        
     end
 
@@ -114,7 +114,8 @@ def addAllGuestsIPtoAllGuestsHostsFiles
 
     hosts.each do |host|
       puts "adding information to #{host}:/etc/hosts"
-      cmd = "vagrant ssh #{host} -c \"sudo sed -i '/^# added by vagrant:$/,$d\' /etc/hosts && echo '#{hostsFooter}' | sudo tee -a /etc/hosts \" -- -q"
+      cmd = "vagrant ssh #{host} -c \"sudo sed -i -e '/^# added by vagrant:$/,$ d\' /etc/hosts && echo '#{hostsFooter}' | sudo tee -a /etc/hosts \" -- -q"
+      # puts cmd
       system(cmd)
     end
   
