@@ -35,39 +35,40 @@ Vagrant.configure("2") do |config|
 
     controller.vm.synced_folder ".", "/vagrant" #, rsync__exclude: ""
     
-    controller.vm.provision "file", source: ".vagrant/machines/node01/virtualbox/private_key", destination: "/home/vagrant/.ssh/node01_private_key"
-    controller.vm.provision "shell", inline: "sudo chmod 600 /home/vagrant/.ssh/*_private_key"
+    # controller.vm.provision "file", source: ".vagrant/machines/node01/virtualbox/private_key", destination: "/home/vagrant/.ssh/node01_private_key"
+    # controller.vm.provision "file", source: ".vagrant/machines/controller/virtualbox/private_key", destination: "/home/vagrant/.ssh/node01_private_key"
+    # controller.vm.provision "shell", inline: "sudo chmod 600 /home/vagrant/.ssh/*_private_key"
     # controller.vm.provision "shell", inline: "sudo chmod 600 /home/vagrant/.ssh/config"
     
     controller.vm.provision "trigger" do |trigger|
       trigger.fire do
-        addAllGuestsIPtoAllGuestsHostsFiles
-        # puts getPrivateKeys
+        addVMsIPtoVMsHostsFiles
+        # puts getPrivateKeyFiles
+        getPrivateKeys
       end        
     end
 
-    controller.vm.provision "ansible_local" do |ansible|
-      # ansible.verbose = true
-      ansible.playbook = "main.yml"
-      ansible.limit = "controller"
-      ansible.extra_vars = {
-        is_vagrant: true,
-      }
-    end
+    # controller.vm.provision "ansible_local" do |ansible|
+    #   # ansible.verbose = true
+    #   ansible.playbook = "main.yml"
+    #   ansible.limit = "controller"
+    #   ansible.extra_vars = {
+    #     is_vagrant: true,                                                                              
+    #   }
+    # end
   
-    controller.vm.provision "ansible_local" do |ansible|
-      ansible.groups = {
-        "nodes" => ["node01"]
-      }
-      ansible.playbook = "main.yml"
-      # ansible.inventory_path = "hosts.yml"
-      # ansible.verbose = true
-      ansible.limit = "all"
-      ansible.extra_vars = {
-        is_vagrant: true,
-      }
-    end
-    # config.ssh.private_key_path
+    # controller.vm.provision "ansible_local" do |ansible|
+    #   ansible.groups = {
+    #     "nodes" => ["node01"]
+    #   }
+    #   ansible.playbook = "main.yml"
+    #   # ansible.inventory_path = "hosts.yml"
+    #   # ansible.verbose = true
+    #   ansible.limit = "all"
+    #   ansible.extra_vars = {
+    #     is_vagrant: true,
+    #   }
+    # end
     
   end
 
@@ -75,12 +76,12 @@ Vagrant.configure("2") do |config|
 end # Vagrant.configure
 
 def getRunningVMs
-  hosts = ''
+  hosts = []
   if not ARGV.include? "status" then
     # get host list
-    cmd = `vagrant status --machine-readable`
-    hosts = []
-    CSV.parse(cmd) do |row|
+    output = `vagrant status --machine-readable`
+    # hosts = []
+    CSV.parse(output) do |row|
       if row.include? ("state") then
         if row[row.index("state")+1] == "running" then
           hosts << row[1]
@@ -93,10 +94,9 @@ def getRunningVMs
   return hosts
 end
 
-def addAllGuestsIPtoAllGuestsHostsFiles
+def addVMsIPtoVMsHostsFiles
   hostsFooter = "# added by vagrant:\n"
   # in the code below vagrant commands are recursively executed. this check helps to avoid infinite loop.
-  # if ARGV.include? "up" or ARGV.include? "provision" or ARGV.include? "--provision" then
   if not ARGV.include? "ssh" then
       hosts = getRunningVMs
 
@@ -105,7 +105,7 @@ def addAllGuestsIPtoAllGuestsHostsFiles
       hostName = (`#{cmd}`).gsub!(/[^0-9A-Za-z\.\-]/, '')
 
       # get IP address from the hosts
-      # probably should be suppressed by https://github.com/devopsgroup-io/vagrant-hostmanager
+      # probably should be suppressed by https://github.com/devopsgroup-io/vagrant-hostmanager, but this plugin doesn't work well
       cmd = "vagrant ssh  #{host} -c \"hostname -I | cut -d\' \' -f2\" -- -q"
       hostIP = (`#{cmd}`).gsub!(/[^0-9\.]/, '')
 
@@ -122,24 +122,30 @@ def addAllGuestsIPtoAllGuestsHostsFiles
   end    
 end
 
-def getPrivateKeys
+def getPrivateKeyFiles
   # in the code below vagrant commands are recursively executed. this check helps to avoid infinite loop.
-  # if ARGV.include? "up" or ARGV.include? "provision" or ARGV.include? "--provision" then
   if not ARGV.include? "ssh-config" then
     hosts = getRunningVMs
-    keys = {}
+    keyFiles = {}
     hosts.each do |host|
-      # the directory that holds private keys (.vagrant) does not sync with guest OS
-      # this code copyes private keys to the root folder
-      # should be suppressed by vm.provision "file"
       cmd = "vagrant ssh-config #{host}"
       ((`#{cmd}`).to_s.split).each_slice(2) do |pair|
         if pair[0] == "IdentityFile" then
-          keys[host] = pair[1]
+          keyFiles[host] = pair[1]
           # FileUtils.cp(pair[1], "#{hostName}_private_key")
         end
       end
     end
-    return keys
+    return keyFiles
   end    
+end
+
+def getPrivateKeys
+  # in the code below vagrant commands are recursively executed. this check helps to avoid infinite loop.
+    keyFiles = getPrivateKeyFiles
+    keys = {}
+    keyFiles.each do |host, file|
+      puts host + "\t" + file
+    end
+    return keys
 end
