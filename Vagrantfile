@@ -35,8 +35,8 @@ Vagrant.configure("2") do |config|
 
     controller.vm.synced_folder ".", "/vagrant" #, rsync__exclude: ""
     
-    # controller.vm.provision "file", source: ".vagrant/machines/node01/virtualbox/private_key", destination: "/home/vagrant/.ssh/node01_private_key"
-    # controller.vm.provision "file", source: ".vagrant/machines/controller/virtualbox/private_key", destination: "/home/vagrant/.ssh/node01_private_key"
+    # controller.vm.provision "filePath", source: ".vagrant/machines/node01/virtualbox/private_key", destination: "/home/vagrant/.ssh/node01_private_key"
+    # controller.vm.provision "filePath", source: ".vagrant/machines/controller/virtualbox/private_key", destination: "/home/vagrant/.ssh/node01_private_key"
     # controller.vm.provision "shell", inline: "sudo chmod 600 /home/vagrant/.ssh/*_private_key"
     # controller.vm.provision "shell", inline: "sudo chmod 600 /home/vagrant/.ssh/config"
     
@@ -144,8 +144,20 @@ def getPrivateKeys
   # in the code below vagrant commands are recursively executed. this check helps to avoid infinite loop.
     keyFiles = getPrivateKeyFiles
     keys = {}
-    keyFiles.each do |host, file|
-      puts host + "\t" + file
+    keyFiles.each do |host, filePath|
+      begin
+        file = File.open(filePath,"r")
+        begin
+          
+        rescue IOError => e
+          puts "Can't read the file #{file}: #{e}"
+        ensure
+          file.close
+        end
+      rescue IOError => e
+        puts "Can't open the file #{file}: #{e}"
+      end
+
     end
     return keys
 end
